@@ -1,7 +1,6 @@
 apiVersion: fluxcd.controlplane.io/v1
 kind: FluxInstance
 metadata:
-  annotations:
   name: flux
   namespace: flux-system
 spec:
