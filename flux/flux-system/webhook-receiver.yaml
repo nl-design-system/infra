@@ -9,13 +9,11 @@ spec:
       kind: Gateway
       name: external-gateway
       namespace: istio-gateway
-  hostnames:
-    - "webhook-receiver.example.com"
   rules:
     - matches:
       - path:
           type: PathPrefix
-          value: /
+          value: /hook
       backendRefs:
         - name: webhook-receiver
           namespace: flux-system
