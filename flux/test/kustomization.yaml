@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - github-receiver.yaml
+  - receiver-token.yaml
   - test-app-main.yaml
   - test-app-pr.yaml
