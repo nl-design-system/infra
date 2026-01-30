@@ -1,0 +1,67 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: test-app
+  namespace: test
+spec:
+  inputsFrom:
+    - apiVersion: fluxcd.controlplane.io/v1
+      kind: ResourceSetInputProvider
+      name: test-app-main
+  resources:
+    - apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: test-app
+        namespace: test
+        labels:
+          app: test-app
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: test-app
+        template:
+          metadata:
+            labels:
+              app: test-app
+          spec:
+            containers:
+              - name: test-app
+                image: ghcr.io/bartjdkp/test:<< inputs.sha >>
+                ports:
+                  - containerPort: 8080
+                    name: http
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: test-app
+        namespace: test
+      spec:
+        selector:
+          app: test-app
+        ports:
+          - port: 80
+            targetPort: 8080
+            name: http
+---
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSetInputProvider
+metadata:
+  name: test-app-main
+  namespace: test
+  annotations:
+    fluxcd.controlplane.io/reconcileEvery: "1m"
+    fluxcd.controlplane.io/reconcileTimeout: "1m"
+spec:
+  type: GitHubBranch # or GitLabBranch / AzureDevOpsBranch
+  url: https://github.com/bartjkdp/test
+  filter:
+    includeBranch: "^main$"
