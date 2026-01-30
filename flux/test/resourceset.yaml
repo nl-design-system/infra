@@ -28,7 +28,7 @@ spec:
           spec:
             containers:
               - name: test-app
-                image: ghcr.io/bartjdkp/test:<< inputs.sha >>
+                image: ghcr.io/bartjdkp/test:sha-<< inputs.sha >>
                 ports:
                   - containerPort: 8080
                     name: http
