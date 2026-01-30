@@ -51,7 +51,7 @@ metadata:
   name: test-app-pr
   namespace: test
   annotations:
-    fluxcd.controlplane.io/reconcileEvery: "1m"
+    fluxcd.controlplane.io/reconcileEvery: "10m"
 spec:
   type: GitHubPullRequest
   url: https://github.com/bartjkdp/test

@@ -51,8 +51,7 @@ metadata:
   name: test-app-main
   namespace: test
   annotations:
-    fluxcd.controlplane.io/reconcileEvery: "1m"
-    fluxcd.controlplane.io/reconcileTimeout: "1m"
+    fluxcd.controlplane.io/reconcileEvery: "10m"
 spec:
   type: GitHubBranch
   url: https://github.com/bartjkdp/test
