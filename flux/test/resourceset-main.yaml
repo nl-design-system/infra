@@ -65,7 +65,3 @@ spec:
   url: https://github.com/bartjkdp/test
   filter:
     includeBranch: "^main$"
-  webhook:
-    enabled: true
-    secretRef:
-      name: github-webhook-token
