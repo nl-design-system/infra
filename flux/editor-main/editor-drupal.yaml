@@ -1,13 +1,13 @@
 apiVersion: fluxcd.controlplane.io/v1
 kind: ResourceSet
 metadata:
-  name: editor-drupal-main
+  name: editor-drupal
   namespace: editor-main
 spec:
   inputsFrom:
     - apiVersion: fluxcd.controlplane.io/v1
       kind: ResourceSetInputProvider
-      name: editor-drupal-main
+      name: editor-drupal
   resources:
     - apiVersion: v1
       kind: Secret
@@ -217,7 +217,7 @@ spec:
             namespace: istio-gateway
             sectionName: https
         hostnames:
-          - editor-drupal-main.review.nlds.delta10.cloud
+          - editor-drupal.review.nlds.delta10.cloud
         rules:
           - backendRefs:
               - name: editor-drupal
@@ -226,7 +226,7 @@ spec:
 apiVersion: fluxcd.controlplane.io/v1
 kind: ResourceSetInputProvider
 metadata:
-  name: editor-drupal-main
+  name: editor-drupal
   namespace: editor-main
   annotations:
     fluxcd.controlplane.io/reconcileEvery: "10m"
