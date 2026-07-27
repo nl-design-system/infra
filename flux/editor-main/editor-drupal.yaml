@@ -217,7 +217,7 @@ spec:
             namespace: istio-gateway
             sectionName: https
         hostnames:
-          - editor-drupal.review.nlds.delta10.cloud
+          - editor-drupal-main.review.nlds.delta10.cloud
         rules:
           - backendRefs:
               - name: editor-drupal
