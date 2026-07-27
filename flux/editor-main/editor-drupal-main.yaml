@@ -1,0 +1,237 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: editor-drupal-main
+  namespace: editor-main
+spec:
+  inputsFrom:
+    - apiVersion: fluxcd.controlplane.io/v1
+      kind: ResourceSetInputProvider
+      name: editor-drupal-main
+  resources:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: editor-drupal-postgres
+        namespace: editor-main
+        labels:
+          app.kubernetes.io/name: editor-drupal-postgres
+          app.kubernetes.io/instance: editor-drupal
+          app.kubernetes.io/component: editor-drupal
+          app.kubernetes.io/part-of: nl-design-system.editor
+      type: Opaque
+      stringData:
+        username: drupal
+        password: drupal
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: editor-drupal-postgres
+        namespace: editor-main
+        labels:
+          app.kubernetes.io/name: editor-drupal-postgres
+          app.kubernetes.io/instance: editor-drupal
+          app.kubernetes.io/component: editor-drupal
+          app.kubernetes.io/part-of: nl-design-system.editor
+      spec:
+        selector:
+          app.kubernetes.io/name: editor-drupal
+          app.kubernetes.io/instance: editor-drupal
+          app.kubernetes.io/part-of: nl-design-system.editor
+        ports:
+          - name: postgres
+            port: 5432
+            targetPort: 5432
+    - apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: editor-drupal
+        namespace: editor-main
+        labels:
+          app.kubernetes.io/name: editor-drupal
+          app.kubernetes.io/instance: editor-drupal
+          app.kubernetes.io/component: editor-drupal
+          app.kubernetes.io/part-of: nl-design-system.editor
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: editor-drupal
+            app.kubernetes.io/instance: editor-drupal
+            app.kubernetes.io/component: editor-drupal
+            app.kubernetes.io/part-of: nl-design-system.editor
+        template:
+          metadata:
+            labels:
+              app.kubernetes.io/name: editor-drupal
+              app.kubernetes.io/instance: editor-drupal
+              app.kubernetes.io/component: editor-drupal
+              app.kubernetes.io/part-of: nl-design-system.editor
+          spec:
+            initContainers:
+              - name: postgres
+                image: postgres:16-alpine
+                restartPolicy: Always
+                ports:
+                  - name: postgres
+                    containerPort: 5432
+                env:
+                  - name: POSTGRES_DB
+                    value: drupal
+                  - name: POSTGRES_USER
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-drupal-postgres
+                        key: username
+                  - name: POSTGRES_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-drupal-postgres
+                        key: password
+                startupProbe:
+                  exec:
+                    command:
+                      - pg_isready
+                      - -U
+                      - drupal
+                      - -d
+                      - drupal
+                  failureThreshold: 30
+                  periodSeconds: 2
+                volumeMounts:
+                  - name: postgres-data
+                    mountPath: /var/lib/postgresql/data
+              - name: prepare-default-site
+                image: "ghcr.io/nl-design-system/editor/drupal:<< inputs.sha | trunc 7 >>"
+                securityContext:
+                  runAsUser: 0
+                command:
+                  - /bin/sh
+                  - -c
+                args:
+                  - cp -R /opt/drupal/web/sites/default/. /shared/default/
+                volumeMounts:
+                  - name: drupal-default-site
+                    mountPath: /shared/default
+              - name: setup
+                image: "ghcr.io/nl-design-system/editor/drupal:<< inputs.sha | trunc 7 >>"
+                securityContext:
+                  runAsUser: 0
+                command:
+                  - /bin/sh
+                  - -c
+                args:
+                  - /usr/local/bin/setup.sh || true
+                env:
+                  - name: POSTGRES_HOST
+                    value: localhost
+                  - name: DB_HOST
+                    value: localhost
+                  - name: DB_PORT
+                    value: "5432"
+                  - name: DB_NAME
+                    value: drupal
+                  - name: DB_USER
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-drupal-postgres
+                        key: username
+                  - name: DB_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-drupal-postgres
+                        key: password
+                volumeMounts:
+                  - name: drupal-default-site
+                    mountPath: /opt/drupal/web/sites/default
+            containers:
+              - name: drupal
+                image: "ghcr.io/nl-design-system/editor/drupal:<< inputs.sha | trunc 7 >>"
+                command:
+                  - apache2-foreground
+                ports:
+                  - name: http
+                    containerPort: 8080
+                env:
+                  - name: POSTGRES_HOST
+                    value: localhost
+                  - name: DB_HOST
+                    value: localhost
+                  - name: DB_PORT
+                    value: "5432"
+                  - name: DB_NAME
+                    value: drupal
+                  - name: DB_USER
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-drupal-postgres
+                        key: username
+                  - name: DB_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-drupal-postgres
+                        key: password
+                volumeMounts:
+                  - name: drupal-default-site
+                    mountPath: /opt/drupal/web/sites/default
+            volumes:
+              - name: postgres-data
+                emptyDir: {}
+              - name: drupal-default-site
+                emptyDir: {}
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: editor-drupal
+        namespace: editor-main
+        labels:
+          app.kubernetes.io/name: editor-drupal
+          app.kubernetes.io/instance: editor-drupal
+          app.kubernetes.io/component: editor-drupal
+          app.kubernetes.io/part-of: nl-design-system.editor
+      spec:
+        selector:
+          app.kubernetes.io/name: editor-drupal
+          app.kubernetes.io/instance: editor-drupal
+          app.kubernetes.io/component: editor-drupal
+          app.kubernetes.io/part-of: nl-design-system.editor
+        ports:
+          - name: http
+            port: 80
+            targetPort: http
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: editor-drupal
+        namespace: editor-main
+        labels:
+          app.kubernetes.io/name: editor-drupal
+          app.kubernetes.io/instance: editor-drupal
+          app.kubernetes.io/component: editor-drupal
+          app.kubernetes.io/part-of: nl-design-system.editor
+      spec:
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: external-gateway
+            namespace: istio-gateway
+            sectionName: https
+        hostnames:
+          - editor-drupal-main.review.nlds.delta10.cloud
+        rules:
+          - backendRefs:
+              - name: editor-drupal
+                port: 80
+---
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSetInputProvider
+metadata:
+  name: editor-drupal-main
+  namespace: editor-main
+  annotations:
+    fluxcd.controlplane.io/reconcileEvery: "10m"
+spec:
+  type: GitHubBranch
+  url: https://github.com/nl-design-system/editor
+  filter:
+    includeBranch: "^main$"

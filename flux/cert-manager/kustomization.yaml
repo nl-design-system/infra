@@ -4,3 +4,6 @@ resources:
   - namespace.yaml
   - helmrepository.yaml
   - helmrelease.yaml
+  - zerossl-prod.yaml
+  - zerossl-eabsecret.yaml
+  - acme-dns.yaml
