@@ -1,0 +1,60 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: test-app-pr
+  namespace: test
+spec:
+  inputsFrom:
+    - apiVersion: fluxcd.controlplane.io/v1
+      kind: ResourceSetInputProvider
+      name: test-app-pr
+  resources:
+    - apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: test-app-<< inputs.id >>
+        namespace: test
+        labels:
+          app: test-app-<< inputs.id >>
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: test-app-<< inputs.id >>
+        template:
+          metadata:
+            labels:
+              app: test-app-<< inputs.id >>
+          spec:
+            containers:
+              - name: test-app
+                image: ghcr.io/bartjkdp/test:sha-<< inputs.sha >>
+                ports:
+                  - containerPort: 8080
+                    name: http
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: test-app-<< inputs.id >>
+        namespace: test
+      spec:
+        selector:
+          app: test-app-<< inputs.id >>
+        ports:
+          - port: 80
+            targetPort: 8080
+            name: http
+---
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSetInputProvider
+metadata:
+  name: test-app-pr
+  namespace: test
+  annotations:
+    fluxcd.controlplane.io/reconcileEvery: "10m"
+spec:
+  type: GitHubPullRequest
+  url: https://github.com/bartjkdp/test
+  filter:
+    labels:
+      - "deploy/flux-preview"
