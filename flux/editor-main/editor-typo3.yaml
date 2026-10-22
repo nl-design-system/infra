@@ -135,7 +135,6 @@ spec:
                         key: password
                   - name: TYPO3_SETUP_ADMIN_USERNAME
                     value: admin
-                  # The editor-typo3 secret is created manually in the cluster, not committed.
                   - name: TYPO3_SETUP_ADMIN_PASSWORD
                     valueFrom:
                       secretKeyRef:
