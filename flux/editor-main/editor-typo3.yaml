@@ -1,0 +1,213 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: editor-typo3
+  namespace: editor-main
+spec:
+  inputsFrom:
+    - apiVersion: fluxcd.controlplane.io/v1
+      kind: ResourceSetInputProvider
+      name: editor-typo3
+  resources:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: editor-typo3-postgres
+        namespace: editor-main
+        labels:
+          app.kubernetes.io/name: editor-typo3-postgres
+          app.kubernetes.io/instance: editor-typo3
+          app.kubernetes.io/component: editor-typo3
+          app.kubernetes.io/part-of: nl-design-system.editor
+      type: Opaque
+      stringData:
+        username: typo3
+        password: typo3
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: editor-typo3-postgres
+        namespace: editor-main
+        labels:
+          app.kubernetes.io/name: editor-typo3-postgres
+          app.kubernetes.io/instance: editor-typo3
+          app.kubernetes.io/component: editor-typo3
+          app.kubernetes.io/part-of: nl-design-system.editor
+      spec:
+        selector:
+          app.kubernetes.io/name: editor-typo3
+          app.kubernetes.io/instance: editor-typo3
+          app.kubernetes.io/part-of: nl-design-system.editor
+        ports:
+          - name: postgres
+            port: 5432
+            targetPort: 5432
+    - apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: editor-typo3
+        namespace: editor-main
+        labels:
+          app.kubernetes.io/name: editor-typo3
+          app.kubernetes.io/instance: editor-typo3
+          app.kubernetes.io/component: editor-typo3
+          app.kubernetes.io/part-of: nl-design-system.editor
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: editor-typo3
+            app.kubernetes.io/instance: editor-typo3
+            app.kubernetes.io/component: editor-typo3
+            app.kubernetes.io/part-of: nl-design-system.editor
+        template:
+          metadata:
+            labels:
+              app.kubernetes.io/name: editor-typo3
+              app.kubernetes.io/instance: editor-typo3
+              app.kubernetes.io/component: editor-typo3
+              app.kubernetes.io/part-of: nl-design-system.editor
+          spec:
+            initContainers:
+              - name: postgres
+                image: postgres:16-alpine
+                restartPolicy: Always
+                ports:
+                  - name: postgres
+                    containerPort: 5432
+                env:
+                  - name: POSTGRES_DB
+                    value: typo3
+                  - name: POSTGRES_USER
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-typo3-postgres
+                        key: username
+                  - name: POSTGRES_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-typo3-postgres
+                        key: password
+                startupProbe:
+                  exec:
+                    command:
+                      - pg_isready
+                      - -U
+                      - typo3
+                      - -d
+                      - typo3
+                  failureThreshold: 30
+                  periodSeconds: 2
+                volumeMounts:
+                  - name: postgres-data
+                    mountPath: /var/lib/postgresql/data
+            containers:
+              # The image's entrypoint installs TYPO3 on an empty database and then starts Apache.
+              - name: typo3
+                image: "ghcr.io/nl-design-system/editor/typo3:sha-<< inputs.sha >>"
+                ports:
+                  - name: http
+                    containerPort: 8080
+                env:
+                  - name: TYPO3_CONTEXT
+                    value: Production
+                  - name: TYPO3_BASE_URL
+                    value: https://editor-typo3-main.review.nlds.delta10.cloud
+                  - name: TYPO3_TRUSTED_HOSTS_PATTERN
+                    value: editor-typo3-main\.review\.nlds\.delta10\.cloud
+                  - name: TYPO3_PROJECT_NAME
+                    value: NL Design System | typo3 demo environment
+                  - name: TYPO3_DB_HOST
+                    value: localhost
+                  - name: TYPO3_DB_PORT
+                    value: "5432"
+                  - name: TYPO3_DB_DBNAME
+                    value: typo3
+                  - name: TYPO3_DB_USERNAME
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-typo3-postgres
+                        key: username
+                  - name: TYPO3_DB_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-typo3-postgres
+                        key: password
+                  - name: TYPO3_SETUP_ADMIN_USERNAME
+                    value: admin
+                  # The editor-typo3 secret is created manually in the cluster, not committed.
+                  - name: TYPO3_SETUP_ADMIN_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-typo3
+                        key: admin-password
+                  - name: TYPO3_ENCRYPTION_KEY
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-typo3
+                        key: encryption-key
+                  - name: TYPO3_INSTALL_TOOL_PASSWORD_HASH
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-typo3
+                        key: install-tool-password-hash
+                        optional: true
+            volumes:
+              - name: postgres-data
+                emptyDir: {}
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: editor-typo3
+        namespace: editor-main
+        labels:
+          app.kubernetes.io/name: editor-typo3
+          app.kubernetes.io/instance: editor-typo3
+          app.kubernetes.io/component: editor-typo3
+          app.kubernetes.io/part-of: nl-design-system.editor
+      spec:
+        selector:
+          app.kubernetes.io/name: editor-typo3
+          app.kubernetes.io/instance: editor-typo3
+          app.kubernetes.io/component: editor-typo3
+          app.kubernetes.io/part-of: nl-design-system.editor
+        ports:
+          - name: http
+            port: 80
+            targetPort: http
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: editor-typo3
+        namespace: editor-main
+        labels:
+          app.kubernetes.io/name: editor-typo3
+          app.kubernetes.io/instance: editor-typo3
+          app.kubernetes.io/component: editor-typo3
+          app.kubernetes.io/part-of: nl-design-system.editor
+      spec:
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: external-gateway
+            namespace: istio-gateway
+            sectionName: https
+        hostnames:
+          - editor-typo3-main.review.nlds.delta10.cloud
+        rules:
+          - backendRefs:
+              - name: editor-typo3
+                port: 80
+---
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSetInputProvider
+metadata:
+  name: editor-typo3
+  namespace: editor-main
+  annotations:
+    fluxcd.controlplane.io/reconcileEvery: "10m"
+spec:
+  type: GitHubBranch
+  url: https://github.com/nl-design-system/editor
+  filter:
+    includeBranch: "^main$"
