@@ -115,6 +115,11 @@ spec:
                     value: https://editor-typo3-main.review.nlds.delta10.cloud
                   - name: TYPO3_TRUSTED_HOSTS_PATTERN
                     value: editor-typo3-main\.review\.nlds\.delta10\.cloud
+                  # TLS terminates at the Istio gateway; without these TYPO3 builds http:// URLs.
+                  - name: TYPO3_REVERSE_PROXY_IP
+                    value: "*"
+                  - name: TYPO3_REVERSE_PROXY_SSL
+                    value: "*"
                   - name: TYPO3_PROJECT_NAME
                     value: NL Design System | typo3 demo environment
                   - name: TYPO3_DB_DRIVER
