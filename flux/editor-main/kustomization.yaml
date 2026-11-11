@@ -3,3 +3,5 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - editor-drupal.yaml
+  - editor-typo3.yaml
+  - editor-typo3-secret.yaml
