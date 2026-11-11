@@ -121,7 +121,7 @@ spec:
                   - /bin/sh
                   - -c
                 args:
-                  - /usr/local/bin/setup.sh || true
+                  - /usr/local/bin/setup.sh || true; mkdir -p /opt/drupal/web/sites/default/files && chown -R www-data:www-data /opt/drupal/web/sites/default/files
                 env:
                   - name: POSTGRES_HOST
                     value: localhost
