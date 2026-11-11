@@ -33,3 +33,8 @@ spec:
     pilot:
       autoscaleMin: 2
       replicaCount: 2
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi

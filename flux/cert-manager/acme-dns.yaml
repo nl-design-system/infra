@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: acme-dns
+    namespace: cert-manager
+stringData:
+    acmedns.json: ENC[AES256_GCM,data:rDCbzQPUSmPH9MH4quN/LUhvOPzVsHHu+Ptey9yGxroXm2kDImUVefP1f3L6SNzeL7ioy9r/e2xbGCjLUJmvEE8IJtVDqhonHpTtNBHztQUotLgNBfYBq5HqWr7es1P/cGCMRLcQZkL0p0eorDSQo9L8vcisJBu1o4PjfPkZS6PT87VEZKl8/Q7IC0mMhfFqWbPPr9P16PGiW4e9uGSBoS5J/Sjtl1bYz8wjCw+88OyrMhb5+7Ohn4y+sHhmExRJLjjw4V86su+dmeN4xTua+g4AkaM95o8JVMmb5RoRhe27Nb3YTrDFEP6CShuQ+VSFyeb8iQpG4ktDTDUoNkLHn6B7Cmvg20Yzeuf7hlmY0xAVw58tWxC4JOdq1H5DYp3s6XUsPZ87SGk2cMfw17YG01GAA6k=,iv:OYgn9ivsvjJaOoOIWwC9UOuCiJcjQ7CfGQVD1CLEiOg=,tag:RZaqdpCovVPSNGR572uZfQ==,type:str]
+sops:
+    age:
+        - recipient: age1u58nleqhzvf90aky87lwsxx0ty92sp264ravzxmswdtkla9dx5usk9krj2
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBDSVBhaVprQUhjRTZPWGRS
+            RHdoK1EyUFB6bVprUnd0c0psYVRic3duUlFJCmZPZ0c2V3RLVmNaaGROSmM4MTBQ
+            MmtWTXhud0lUeWFGZ0pzdjl5QjQwSXMKLS0tIG1kRFJ6bmpIaGdoS3piOVAvRHhh
+            K01tdlU2SGdJc2ExSE1rSEdpdmd2cVEKIYZJlDl7pJDn5I6AENiDXsRECeNsKRKe
+            W07DNbkBLVjREzIzpIylNWLz4+n7lllpoz1jZb5MdWRKXZshCIuCEg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-07-27T19:46:42Z"
+    mac: ENC[AES256_GCM,data:vLOQyw5eQ5R2qm92qOzNQfkmDnEkl1B3N0GCMI83ZgMUrty3DtSTW1fgfFHw+7IXQJ17qYkv0nsz145j0Ln6Xk2QVxaz3gSYUfT73jFWUN+V+eWmal4Q+cZECCnPBi6+hv9bBoF7KbO6nIjxY6YSMMTMAHYsZi8F0JMMdMx3s/w=,iv:2jmfgEsVKN58QbJL9Lp9HcQpVR1XVAdoCHd4anL3f28=,tag:SUhSaHK4ut6DiYdsyEXjPw==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    version: 3.10.2

@@ -1,0 +1,59 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: test-app-main
+  namespace: test
+spec:
+  inputsFrom:
+    - apiVersion: fluxcd.controlplane.io/v1
+      kind: ResourceSetInputProvider
+      name: test-app-main
+  resources:
+    - apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: test-app-main
+        namespace: test
+        labels:
+          app: test-app-main
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: test-app-main
+        template:
+          metadata:
+            labels:
+              app: test-app-main
+          spec:
+            containers:
+              - name: test-app
+                image: ghcr.io/bartjkdp/test:sha-<< inputs.sha >>
+                ports:
+                  - containerPort: 8080
+                    name: http
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: test-app
+        namespace: test
+      spec:
+        selector:
+          app: test-app
+        ports:
+          - port: 80
+            targetPort: 8080
+            name: http
+---
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSetInputProvider
+metadata:
+  name: test-app-main
+  namespace: test
+  annotations:
+    fluxcd.controlplane.io/reconcileEvery: "10m"
+spec:
+  type: GitHubBranch
+  url: https://github.com/bartjkdp/test
+  filter:
+    includeBranch: "^main$"
