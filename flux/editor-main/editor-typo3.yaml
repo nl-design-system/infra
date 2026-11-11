@@ -117,6 +117,8 @@ spec:
                     value: editor-typo3-main\.review\.nlds\.delta10\.cloud
                   - name: TYPO3_PROJECT_NAME
                     value: NL Design System | typo3 demo environment
+                  - name: TYPO3_DB_DRIVER
+                    value: postgres
                   - name: TYPO3_DB_HOST
                     value: localhost
                   - name: TYPO3_DB_PORT
