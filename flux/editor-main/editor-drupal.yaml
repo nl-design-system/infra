@@ -53,7 +53,7 @@ spec:
           app.kubernetes.io/component: editor-drupal
           app.kubernetes.io/part-of: nl-design-system.editor
       spec:
-        replicas: 1
+        replicas: 0
         selector:
           matchLabels:
             app.kubernetes.io/name: editor-drupal
