@@ -9,6 +9,7 @@ spec:
       kind: Gateway
       name: external-gateway
       namespace: istio-gateway
+      sectionName: https
   rules:
     - matches:
       - path:

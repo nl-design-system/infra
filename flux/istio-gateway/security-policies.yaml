@@ -1,0 +1,29 @@
+# Security policies for every hostname behind the external gateway.
+#
+# These use EnvoyFilters instead of HTTPRoute filters: the gateway picks one virtual host
+# per hostname, so a hostless HTTPRoute never applies to hostnames that have their own
+# HTTPRoute (such as editor-drupal-main). Patching the generated route configuration of the
+# https listener (port 443) covers all current and future hostnames.
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: external-gateway-hsts
+  namespace: istio-gateway
+spec:
+  workloadSelector:
+    labels:
+      gateway.networking.k8s.io/gateway-name: external-gateway
+  configPatches:
+    - applyTo: ROUTE_CONFIGURATION
+      match:
+        context: GATEWAY
+        routeConfiguration:
+          portNumber: 443
+      patch:
+        operation: MERGE
+        value:
+          response_headers_to_add:
+            - header:
+                key: Strict-Transport-Security
+                value: max-age=31536000
+              append_action: OVERWRITE_IF_EXISTS_OR_ADD

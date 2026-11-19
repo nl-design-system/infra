@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - external-gateway.yaml
+  - security-policies.yaml
