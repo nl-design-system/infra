@@ -141,6 +141,13 @@ spec:
                       secretKeyRef:
                         name: editor-drupal-postgres
                         key: password
+                  - name: DRUPAL_ADMIN_USER
+                    value: admin
+                  - name: DRUPAL_ADMIN_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: editor-drupal
+                        key: admin-password
                 volumeMounts:
                   - name: drupal-default-site
                     mountPath: /opt/drupal/web/sites/default
