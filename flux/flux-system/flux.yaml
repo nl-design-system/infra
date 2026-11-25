@@ -1,0 +1,55 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  cluster:
+    domain: cluster.local
+    multitenant: false
+    multitenantWorkloadIdentity: false
+    networkPolicy: true
+    size: medium
+    type: kubernetes
+  components:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+    - image-reflector-controller
+    - image-automation-controller
+  distribution:
+    artifact: oci://ghcr.io/controlplaneio-fluxcd/flux-operator-manifests
+    registry: ghcr.io/fluxcd
+    version: 2.x
+  kustomize:
+    patches:
+      - patch: |
+          - op: replace
+            path: /spec/template/spec/nodeSelector
+            value:
+              kubernetes.io/os: linux
+          - op: add
+            path: /spec/template/spec/tolerations
+            value:
+              - key: "CriticalAddonsOnly"
+                operator: "Exists"
+        target:
+          kind: Deployment
+      - patch: |
+          - op: add
+            path: /spec/decryption
+            value:
+              provider: sops
+              secretRef:
+                name: sops-age
+        target:
+          kind: Kustomization
+  migrateResources: true
+  sync:
+    interval: 1m
+    kind: GitRepository
+    path: ./
+    ref: refs/heads/dev
+    url: https://github.com/nl-design-system/infra.git
+  wait: true
