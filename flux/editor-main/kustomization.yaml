@@ -4,4 +4,5 @@ resources:
   - namespace.yaml
   - editor-drupal.yaml
   - editor-typo3.yaml
+  - editor-drupal-secret.yaml
   - editor-typo3-secret.yaml
